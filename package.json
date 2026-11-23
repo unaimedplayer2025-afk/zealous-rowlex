@@ -1,0 +1,14 @@
+{
+  "name": "zealous-rowlex",
+  "version": "1.0.0",
+  "description": "ZEALOUS SHOOTER \u2014 a browser remake starring Rowlex vs Evil",
+  "scripts": {
+    "start": "python3 -m http.server 8770",
+    "play-tests": "node tools/play-tests.js",
+    "check": "node tools/check.js"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
+  }
+}

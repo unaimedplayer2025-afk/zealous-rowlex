@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<link rel="icon" href="favicon.ico">
+<title>ZEALOUS SHOOTER — Rowlex vs Evil</title>
+<meta name="description" content="A browser remake of Zealous Shooter. Rowlex faces a swarm of dripping brain creatures and the 666 HP boss Evil. Headshots matter.">
+<style>
+  :root { --red: #ff2a2a; --pink: #ff4ae0; --teal: #40ffe0; --purp: #c040ff; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: #05020c; overflow: hidden; font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif; color: #fff; user-select: none; -webkit-user-select: none; touch-action: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+  .hud { position: fixed; pointer-events: none; }
+  #hudTL { left: 16px; top: 12px; }
+  #score, #best { color: var(--red); font-size: 22px; letter-spacing: 1px; text-shadow: 0 0 12px #ff1020, 0 2px 0 #000; }
+  #best { font-size: 15px; margin-top: 2px; opacity: .95; }
+  #hpWrap { width: 230px; height: 16px; border: 2px solid #fff; background: rgba(0,0,0,.55); transform: skewX(-15deg); box-shadow: 0 0 10px var(--teal); margin-bottom: 8px; }
+  #hp { height: 100%; width: 100%; background: linear-gradient(90deg, #ff2a1a, #ff8a2a); }
+  #hudTR { right: 16px; top: 10px; text-align: right; }
+  #waveTag { font-size: 13px; letter-spacing: 3px; color: var(--teal); text-shadow: 0 0 10px var(--teal); }
+  #speedTag { font-size: 12px; letter-spacing: 2px; opacity: .8; margin-top: 4px; }
+  #boss { left: 50%; top: 12px; transform: translateX(-50%); width: min(560px, 70vw); text-align: center; display: none; text-shadow: 0 0 10px #ff2010; }
+  #bossName { font-size: 18px; letter-spacing: 6px; color: #ff8a20; }
+  #bossBar { height: 14px; border: 2px solid #fff; background: rgba(0,0,0,.65); margin-top: 4px; }
+  #bossHp { height: 100%; width: 100%; background: linear-gradient(90deg, #ff1a10, #ff8a2a); }
+  #bossHpNum { font-size: 12px; letter-spacing: 2px; margin-top: 3px; color: #ffd0a0; }
+  #objective { left: 50%; bottom: 18px; transform: translateX(-50%); font-size: 13px; letter-spacing: 2px; text-align: center; text-shadow: 0 0 8px #000, 0 0 10px var(--pink); opacity: .9; }
+  #msg, #sub { left: 0; right: 0; text-align: center; text-shadow: 0 0 18px var(--pink), 0 3px 0 #000; opacity: 0; transition: opacity .3s; }
+  #msg { top: 28%; font-size: 48px; font-style: italic; letter-spacing: 3px; }
+  #sub { top: calc(28% + 60px); font-size: 16px; letter-spacing: 2px; }
+  #hurt { position: fixed; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 140px 50px rgba(255,0,40,.75); }
+  #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #pause { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; background: rgba(0,0,0,.55); text-align: center; pointer-events: none; }
+  #pause h1 { font-size: 64px; font-style: italic; margin: 0; letter-spacing: 8px; text-shadow: 0 0 20px var(--teal); }
+  #pause p { letter-spacing: 3px; opacity: .85; }
+  #end { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,.62); text-align: center; pointer-events: none; }
+  #end h1 { font-size: min(11vw, 78px); font-style: italic; margin: 0; letter-spacing: 4px; text-shadow: 0 0 22px var(--pink); }
+  #end .red { color: var(--red); text-shadow: 0 0 14px #ff1020, 0 2px 0 #000; font-size: 28px; letter-spacing: 2px; margin-top: 14px; }
+  #endBoss { width: min(480px, 70vw); margin-top: 18px; }
+  #endBoss .bar { height: 16px; border: 2px solid #fff; background: rgba(0,0,0,.6); }
+  #endBossHp { height: 100%; width: 100%; background: linear-gradient(90deg, #ff1a10, #ff8a2a); }
+  #endPrompt { font-size: 15px; letter-spacing: 3px; opacity: .8; margin-top: 22px; }
+  #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6vh; pointer-events: none; }
+  #logo { font-size: min(11vw, 96px); font-style: italic; font-weight: 900; letter-spacing: -1px; line-height: .95; text-align: center;
+    background: linear-gradient(180deg, #fff 0%, #f0c0ff 28%, #ff4ae0 58%, #40ffe0 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 18px rgba(255,74,224,.7)) drop-shadow(0 4px 0 #201); }
+  #logoSub { font-size: min(4.4vw, 26px); letter-spacing: .45em; margin-top: 10px; color: #ff8a20; text-shadow: 0 0 12px #ff8a20; }
+  #logoHero { font-size: min(3.2vw, 16px); letter-spacing: .35em; margin-top: 8px; color: #40ffe0; text-shadow: 0 0 10px #40ffe0; }
+  #prompt { position: absolute; bottom: 13vh; font-size: min(4.4vw, 22px); letter-spacing: .28em; animation: blink 1.1s infinite; text-shadow: 0 0 12px #ff4ae0; }
+  #help { position: absolute; bottom: 3.4vh; font-size: 12px; letter-spacing: .08em; opacity: .78; font-family: Arial, sans-serif; text-align: center; padding: 0 12px; }
+  @keyframes blink { 50% { opacity: .35; } }
+  #mute { position: fixed; right: 12px; bottom: 12px; width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); background: rgba(0,0,0,.45); color: #fff; font-size: 18px; z-index: 5; cursor: pointer; pointer-events: auto; }
+  #touch { display: none; }
+  body.touch #touch { display: block; }
+  #stick { position: fixed; width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(255,255,255,.06); left: 24px; bottom: 24px; pointer-events: none; }
+  #knob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,.35); }
+  #bFire { position: fixed; right: 28px; bottom: 36px; width: 92px; height: 92px; border-radius: 50%; border: 2px solid #ff3a2a; background: rgba(0,0,0,.35); color: #fff; font: 14px "Arial Black", Arial; letter-spacing: 1px; box-shadow: 0 0 12px #ff2010; display: flex; align-items: center; justify-content: center; }
+  body.playing #title { display: none; }
+  body:not(.playing) .gameHud { display: none !important; }
+  body.paused #pause { display: flex; }
+  body.end #end { display: flex; }
+  body.bossOn #boss { display: block; }
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hudTL" class="hud gameHud">
+  <div id="hpWrap"><div id="hp"></div></div>
+  <div id="score">SCORE 0</div>
+  <div id="best">BEST 0</div>
+</div>
+<div id="hudTR" class="hud gameHud">
+  <div id="waveTag">SWARM</div>
+  <div id="speedTag">TEMPO 1.00×</div>
+</div>
+<div id="boss" class="hud gameHud">
+  <div id="bossName">EVIL</div>
+  <div id="bossBar"><div id="bossHp"></div></div>
+  <div id="bossHpNum">666 / 666</div>
+</div>
+<div id="objective" class="hud gameHud">SURVIVE THE SWARM  ·  HEADSHOTS CRIPPLE EVIL</div>
+<div id="msg" class="hud"></div><div id="sub" class="hud"></div>
+<div id="hurt"></div><div id="flash"></div>
+<div id="pause"><h1>PAUSED</h1><p>PRESS ANY KEY TO RESUME</p></div>
+<div id="end">
+  <h1 id="endTitle">GOOD GAME</h1>
+  <div class="red" id="endScore">SCORE 0</div>
+  <div class="red" id="endBest">BEST 0</div>
+  <div id="endBoss">
+    <div style="letter-spacing:6px;font-size:13px;color:#ff8a20;margin-bottom:4px">EVIL</div>
+    <div class="bar"><div id="endBossHp"></div></div>
+    <div id="endBossNum" style="font-size:13px;margin-top:4px;letter-spacing:2px;color:#ffd0a0">666 / 666</div>
+  </div>
+  <div id="endPrompt">PRESS ANY KEY / TAP TO PLAY AGAIN</div>
+</div>
+<div id="title">
+  <div id="logo">ZEALOUS<br>SHOOTER</div>
+  <div id="logoSub">ROWLEX  VS  EVIL</div>
+  <div id="logoHero">A VALOR QUEST REMAKE</div>
+  <div id="prompt">TAP OR PRESS ANY KEY</div>
+  <div id="help">WASD move  ·  LEFT MOUSE hold to fire  ·  ENTER pause (any key resumes)  ·  ESC quit to title  ·  M mute<br>Brains swarm you. The game speeds up as your score climbs. EVIL has 666 HP — body shots deal 1, headshots deal 111.</div>
+</div>
+<div id="touch" class="gameHud">
+  <div id="stick"><div id="knob"></div></div>
+  <div id="bFire">FIRE</div>
+</div>
+<button id="mute" aria-label="mute">&#128266;</button>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
