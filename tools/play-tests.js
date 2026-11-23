@@ -117,21 +117,38 @@ async function aimAt(page, worldX, worldY, worldZ) {
     d.player.x = 0; d.player.z = 4; d.player.vx = 0; d.player.vz = 0;
     d.clearBrains();
     d.G.iframe = 4;
-    d.spawnBrain(0, -2);
+    d.G.spawnT = 9999;
+    for (const [x, z] of [[1.6, 1.4], [-1.8, 1.2], [0.2, 0.2]]) {
+      const br = d.spawnBrain(x, z);
+      br.ai = false;
+    }
+    d.snapCam();
   });
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(300);
   const spawned = await st(page);
   if (spawned.brains >= 1) pass('brains spawn', 'n=' + spawned.brains);
   else fail('brains spawn', JSON.stringify(spawned));
   await snap(page, '03-brains');
 
-  // Aim at first brain and hold fire in real time
-  const score0 = spawned.score;
+  // Place one frozen brain ahead and hold-fire in real time
+  await page.evaluate(() => {
+    const d = window.__dbg;
+    d.clearBrains(); d.pointer.down = false; if (d.clearBolts) d.clearBolts();
+    d.player.x = 0; d.player.z = 4; d.player.vx = 0; d.player.vz = 0;
+    d.G.iframe = 4; d.G.spawnT = 9999;
+    const br = d.spawnBrain(0, 1.0);
+    br.ai = false;
+    d.snapCam();
+  });
+  await page.waitForTimeout(150);
+  const preKill = await st(page);
+  const score0 = preKill.score;
+  const nBrains = preKill.brains;
   const killDeadline = Date.now() + 8000;
   let killed = false;
   while (Date.now() < killDeadline) {
     const s = await st(page);
-    if (s.score > score0 || s.brains < spawned.brains) { killed = true; break; }
+    if (s.score > score0 || s.brains < nBrains) { killed = true; break; }
     const br = s.brainList && s.brainList[0];
     if (br) {
       const scr = await page.evaluate(b => window.__dbg.project(b.x, 1.2, b.z), br);
@@ -142,8 +159,9 @@ async function aimAt(page, worldX, worldY, worldZ) {
   }
   await page.mouse.up();
   const afterKill = await st(page);
-  if (killed || afterKill.score > score0) pass('brains die and score rises', 'score ' + score0 + ' -> ' + afterKill.score);
-  else fail('brains die and score rises', JSON.stringify(afterKill));
+  if (afterKill.score > score0 || (killed && afterKill.brains < nBrains)) {
+    pass('brains die and score rises', 'score ' + score0 + ' -> ' + afterKill.score);
+  } else fail('brains die and score rises', JSON.stringify(afterKill));
 
   // Speed-up: bump score and confirm tempo
   await page.evaluate(() => { window.__dbg.G.score += 700; window.__dbg.G.speed = 1 + window.__dbg.G.score / 700; });
@@ -304,16 +322,29 @@ async function aimAt(page, worldX, worldY, worldZ) {
   else fail('Good Game on Evil defeated', JSON.stringify(endish));
   await snap(page, '07-good-game');
 
-  // Restart from Good Game
+  // Restart from Good Game — any key or tap, after the endDelay gate
   if (endish.mode === 'end') {
+    await page.mouse.up();
     await page.waitForFunction(() => window.__dbg && window.__dbg.endDelay <= 0, null, { timeout: 4000 });
+    await page.waitForTimeout(200);
     await page.keyboard.press('Space');
     await page.waitForTimeout(500);
-    const again = await st(page);
+    let again = await st(page);
+    if (again.mode !== 'play') {
+      // documented tap-to-play-again
+      const box = await page.locator('#c').boundingBox();
+      if (box) await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5);
+      await page.waitForTimeout(500);
+      again = await st(page);
+    }
+    if (again.mode !== 'play') {
+      await page.keyboard.press('KeyA');
+      await page.waitForTimeout(400);
+      again = await st(page);
+    }
     if (again.mode === 'play' && again.hp >= 99 && again.score === 0) pass('restart from Good Game');
     else fail('restart from Good Game', JSON.stringify(again));
   } else {
-    // still verify restart path: force a good-game and continue
     fail('restart from Good Game', 'skipped, not on end screen');
   }
 

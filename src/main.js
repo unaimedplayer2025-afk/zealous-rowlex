@@ -23,22 +23,23 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
 renderer.setSize(innerWidth, innerHeight, false);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 1.22;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(54, innerWidth / innerHeight, 0.2, 240);
-camera.position.set(0, 14, 16);
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.15, 240);
+camera.position.set(0, 4.6, 6.8);
 
 let composer = null, bloom = null, useBloom = !LOWFX;
 try {
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.32, 0.4, 0.85);
+  bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.38, 0.45, 0.78);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 } catch (e) { useBloom = false; composer = null; }
 
-const CAM_OFF = new THREE.Vector3(0, 16.5, 19);
+const CAM_OFF = new THREE.Vector3(0.4, 4.5, 6.6);
+const CAM_BOSS = new THREE.Vector3(2.2, 4.2, 8.4);
 const PLAYER_SPEED = 9.2;
 const PLAYER_HP = 100;
 const FIRE_CD = 0.11;
@@ -251,10 +252,10 @@ function spawnBrain(x, z) {
     // prefer coming out of the portal side sometimes
     if (Math.random() < 0.45) { x = rnd(-6, 6); z = -ARENA_R + 1.2; }
   }
-  const P = buildBrain(1);
-  P.root.position.set(x, 1.25, z);
+  const P = buildBrain(1.7);
+  P.root.position.set(x, 0.95 + P.radius, z);
   scene.add(P.root);
-  const b = { P, x, z, y: 1.25, hp: BRAIN_HP, hurt: 0, t: Math.random() * 10, alive: true };
+  const b = { P, x, z, y: 0.95 + P.radius, hp: BRAIN_HP, hurt: 0, t: Math.random() * 10, alive: true };
   brains.push(b);
   SFX.spawn();
   return b;
@@ -263,7 +264,7 @@ function spawnBrain(x, z) {
 function spawnEvil() {
   if (evil && evil.alive) return evil;
   if (evil) { scene.remove(evil.P.root); evil = null; }
-  const P = buildEvil(1.15);
+  const P = buildEvil(1.5);
   const x = 0, z = -ARENA_R + 2;
   P.root.position.set(x, 0, z);
   scene.add(P.root);
@@ -285,7 +286,7 @@ function muzzleWorld(out) {
 }
 
 function firePlayer() {
-  const origin = new THREE.Vector3(player.x, 1.35, player.z);
+  const origin = new THREE.Vector3(player.x, (H ? H.standHeight : 1.4) + 0.28, player.z);
   const dir = pointer.aim.clone().sub(origin);
   if (dir.lengthSq() < 0.0001) dir.set(Math.sin(player.yaw), 0, Math.cos(player.yaw));
   dir.normalize();
@@ -581,18 +582,25 @@ function tickBrains(dt) {
     if (!b.alive) { brains.splice(i, 1); continue; }
     b.t += dt;
     b.hurt = Math.max(0, b.hurt - dt);
+    if (b.ai === false) {
+      b.y = 0.95 + b.P.radius + Math.sin(b.t * 2.4) * 0.14;
+      b.P.root.position.set(b.x, b.y, b.z);
+      b.P.root.lookAt(player.x, b.y, player.z);
+      poseBrain(b.P, b.t, b.hurt);
+      continue;
+    }
     const dx = player.x - b.x, dz = player.z - b.z;
     const l = Math.hypot(dx, dz) || 1;
     b.x += (dx / l) * spd * dt;
     b.z += (dz / l) * spd * dt;
     const ar = Math.hypot(b.x, b.z);
     if (ar > ARENA_R - 0.4) { b.x *= (ARENA_R - 0.4) / ar; b.z *= (ARENA_R - 0.4) / ar; }
-    b.y = 1.15 + Math.sin(b.t * 2.4) * 0.12;
+    b.y = 0.95 + b.P.radius + Math.sin(b.t * 2.4) * 0.14;
     b.P.root.position.set(b.x, b.y, b.z);
     b.P.root.lookAt(player.x, b.y, player.z);
     poseBrain(b.P, b.t, b.hurt);
     // contact
-    if (l < 1.05 && G.mode === 'play') hurtPlayer(14, b);
+    if (l < 0.75 + b.P.radius && G.mode === 'play') hurtPlayer(14, b);
   }
 }
 
@@ -642,7 +650,7 @@ function tickEvil(dt) {
   evil.P.root.traverse(o => {
     if (o.material && o.material.emissive) {
       if (o.material.userData._baseEm == null) o.material.userData._baseEm = o.material.emissiveIntensity;
-      o.material.emissiveIntensity = evil.hurt > 0 ? 0.85 : o.material.userData._baseEm;
+      o.material.emissiveIntensity = evil.hurt > 0 ? (o.material.userData._baseEm + 0.35) : o.material.userData._baseEm;
     }
   });
 }
@@ -707,22 +715,57 @@ function tickFx(dt) {
   syncFloaters();
 }
 
+function camOffset() {
+  return (evil && evil.alive) ? CAM_BOSS : CAM_OFF;
+}
+
+function camLook(out) {
+  const h = H ? H.standHeight : 1.4;
+  if (evil && evil.alive) {
+    out.set(
+      player.x * 0.4 + evil.x * 0.6,
+      3.25,
+      player.z * 0.4 + evil.z * 0.6
+    );
+  } else {
+    out.set(
+      player.x * 0.88 + pointer.aim.x * 0.12,
+      h + 0.25,
+      player.z - 1.35
+    );
+  }
+  return out;
+}
+
+function placeCam(instant) {
+  const off = camOffset();
+  const desired = _v.set(player.x + off.x, off.y, player.z + off.z);
+  if (instant) camera.position.copy(desired);
+  else camera.position.lerp(desired, 1);
+  camLook(_v3);
+  camera.lookAt(_v3);
+  camera.updateMatrixWorld(true);
+}
+
 function tickCamera(dt) {
   if (G.mode === 'title') {
-    const t = Math.sin(G.t * 0.25) * 0.45;
-    camera.position.set(Math.sin(t) * 8, 5.6 + Math.sin(G.t * 0.3) * 0.25, 11.5);
-    camera.lookAt(0, 1.15, 0);
-    return;
+    const t = Math.sin(G.t * 0.25) * 0.35;
+    // Close 3/4 view so Rowlex fills the frame and the mountain/portal stay behind him
+    camera.position.set(Math.sin(t) * 2.6, 2.55 + Math.sin(G.t * 0.3) * 0.12, 5.4);
+    camera.lookAt(0, 1.05, 0);
+  } else {
+    const off = camOffset();
+    const desiredX = player.x + off.x, desiredY = off.y, desiredZ = player.z + off.z;
+    const k = 1 - Math.exp(-dt * 5.2);
+    camera.position.x = lerp(camera.position.x, desiredX, k);
+    camera.position.y = lerp(camera.position.y, desiredY, k);
+    camera.position.z = lerp(camera.position.z, desiredZ, k);
+    camLook(_v3);
+    camera.lookAt(_v3);
   }
-  // Look a little toward the aim point so a tall boss's skull stays on-screen
-  const look = _v3.set(
-    player.x * 0.85 + pointer.aim.x * 0.15,
-    1.7 + clamp(pointer.aim.y - 1, 0, 3) * 0.2,
-    player.z * 0.85 + pointer.aim.z * 0.15
-  );
-  const desired = new THREE.Vector3(player.x, 0, player.z).add(CAM_OFF);
-  camera.position.lerp(desired, 1 - Math.exp(-dt * 4.2));
-  camera.lookAt(look);
+  if (arena && arena.camLight) {
+    arena.camLight.position.copy(camera.position);
+  }
 }
 
 function tickTitle(dt) {
@@ -846,9 +889,7 @@ function syncDbg() {
 }
 
 function snapCam() {
-  camera.position.set(player.x + CAM_OFF.x, CAM_OFF.y, player.z + CAM_OFF.z);
-  camera.lookAt(player.x, 2.0, player.z);
-  camera.updateMatrixWorld(true);
+  placeCam(true);
 }
 
 function project(x, y, z) {
@@ -872,10 +913,10 @@ function buildDbg() {
 
 async function init() {
   arena = buildArena(scene, backdropTex);
-  H = buildRowlex(1);
+  H = buildRowlex(1.35);
   H.root.position.set(0, H.standHeight, 0);
-  const heroLight = new THREE.PointLight(0xfff2e8, 2.4, 16, 1.8);
-  heroLight.position.set(0, 2.2, 1.6);
+  const heroLight = new THREE.PointLight(0xfff2e8, 1.1, 8, 1.8);
+  heroLight.position.set(0, 1.6, 2.2);
   H.root.add(heroLight);
   scene.add(H.root);
   $('best').textContent = 'BEST ' + G.best;

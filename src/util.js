@@ -91,11 +91,11 @@ export const Tex = {
   },
   rustPlate() {
     return canvasTex(256, 256, (g, w, h) => {
-      g.fillStyle = '#b45a18'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#f08a20'; g.fillRect(0, 0, w, h);
       for (let i = 0; i < 6000; i++) {
-        const r = 140 + Math.random() * 70 | 0;
-        const gg = 40 + Math.random() * 50 | 0;
-        const b = 10 + Math.random() * 24 | 0;
+        const r = 210 + Math.random() * 45 | 0;
+        const gg = 100 + Math.random() * 70 | 0;
+        const b = 16 + Math.random() * 18 | 0;
         g.fillStyle = `rgba(${r},${gg},${b},0.35)`;
         g.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 5, 2);
       }

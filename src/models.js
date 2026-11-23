@@ -61,15 +61,15 @@ function limbSeg(parent, mat, len, r, r2) {
 
 export function buildRowlex(scale = 1) {
   const armorMap = Tex.armor();
-  const hide = std(0x3a6a48, { roughness: 0.5, metalness: 0.38, map: armorMap, color: 0x4a8a5c, emissive: 0x163820, emissiveIntensity: 0.45 });
+  const hide = std(0x243c2c, { roughness: 0.48, metalness: 0.42, map: armorMap, color: 0x2a4a34, emissive: 0x0c1a10, emissiveIntensity: 0.28 });
   const plate = std(0x101a14, { roughness: 0.5, metalness: 0.7 });
-  const rust = std(0x2e241c, { roughness: 0.62, metalness: 0.65 });
+  const bronze = std(0x6e4e32, { roughness: 0.48, metalness: 0.78, emissive: 0x2a1608, emissiveIntensity: 0.12 });
   const iron = std(0x2a2c2a, { roughness: 0.45, metalness: 0.85 });
   const steel = std(0x4a4c4a, { roughness: 0.4, metalness: 0.88 });
   const nail = std(0x3a3834, { roughness: 0.45, metalness: 0.8 });
-  const eyeLens = new THREE.MeshBasicMaterial({ color: 0x4a0000, toneMapped: false });
-  const eyeCore = new THREE.MeshBasicMaterial({ color: 0xe01000, toneMapped: false });
-  const amber = new THREE.MeshBasicMaterial({ color: 0xc87814, toneMapped: false });
+  const eyeLens = new THREE.MeshBasicMaterial({ color: 0x6a0000, toneMapped: false });
+  const eyeCore = new THREE.MeshBasicMaterial({ color: 0xff1a10, toneMapped: false });
+  const amber = new THREE.MeshBasicMaterial({ color: 0xffb020, toneMapped: false });
 
   const root = new THREE.Group();
   const body = grp(root, 0, 0, 0);
@@ -94,26 +94,26 @@ export function buildRowlex(scale = 1) {
   }
 
   const eye = grp(shell, 0, 0.02, 0.505);
-  part(eye, new THREE.CylinderGeometry(0.2, 0.22, 0.07, 20), plate, 0, 0, -0.08, Math.PI / 2);
-  part(eye, new THREE.CircleGeometry(0.2, 20), plate, 0, 0, -0.12);
-  part(eye, new THREE.TorusGeometry(0.2, 0.014, 8, 24), iron, 0, 0, -0.015);
+  part(eye, new THREE.CylinderGeometry(0.22, 0.24, 0.08, 20), plate, 0, 0, -0.08, Math.PI / 2);
+  part(eye, new THREE.CircleGeometry(0.22, 20), plate, 0, 0, -0.12);
+  part(eye, new THREE.TorusGeometry(0.215, 0.022, 8, 24), iron, 0, 0, -0.01);
   for (let i = 0; i < 16; i++) {
     const a = i / 16 * Math.PI * 2;
-    B(eye, iron, Math.cos(a) * 0.215, Math.sin(a) * 0.215, -0.015, 0.026, 0.014, 0.02, 0, 0, a);
+    B(eye, iron, Math.cos(a) * 0.235, Math.sin(a) * 0.235, -0.01, 0.032, 0.018, 0.024, 0, 0, a);
   }
-  part(eye, new THREE.SphereGeometry(0.16, 18, 14), eyeLens, 0, 0, 0.05, 0, 0, 0, 1, 1, 0.78);
-  part(eye, new THREE.SphereGeometry(0.075, 14, 10), eyeCore, 0, 0, 0.115);
-  const eyeHalo = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.32), additive(0xff1408, 0.22, { map: Tex.dot(), side: THREE.DoubleSide, depthWrite: false }));
-  eyeHalo.position.z = 0.12; eye.add(eyeHalo);
-  const eyeLight = new THREE.PointLight(0xff1808, 0.12, 2.4, 2); eyeLight.position.set(0, 0, 0.2); eye.add(eyeLight);
+  part(eye, new THREE.SphereGeometry(0.185, 18, 14), eyeLens, 0, 0, 0.05, 0, 0, 0, 1, 1, 0.8);
+  part(eye, new THREE.SphereGeometry(0.09, 14, 10), eyeCore, 0, 0, 0.13);
+  const eyeHalo = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.55), additive(0xff1a10, 0.58, { map: Tex.dot(), side: THREE.DoubleSide, depthWrite: false }));
+  eyeHalo.position.z = 0.14; eye.add(eyeHalo);
+  const eyeLight = new THREE.PointLight(0xff2010, 2.2, 6, 1.6); eyeLight.position.set(0, 0, 0.25); eye.add(eyeLight);
   const muzzle = grp(eye, 0, 0, 0.22);
 
   const lamps = [];
   for (const s of [-1, 1]) {
     const lamp = grp(shell, s * 0.29, 0.11, 0.41);
-    part(lamp, new THREE.CylinderGeometry(0.05, 0.055, 0.045, 10), iron, 0, 0, 0, Math.PI / 2);
-    part(lamp, G.sph, amber, 0, 0, 0.02, 0, 0, 0, 0.038, 0.038, 0.038);
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.16), additive(0xffaa22, 0.28, { map: Tex.dot(), side: THREE.DoubleSide, depthWrite: false }));
+    part(lamp, new THREE.CylinderGeometry(0.055, 0.06, 0.05, 10), iron, 0, 0, 0, Math.PI / 2);
+    part(lamp, G.sph, amber, 0, 0, 0.025, 0, 0, 0, 0.048, 0.048, 0.048);
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.26), additive(0xffb020, 0.7, { map: Tex.dot(), side: THREE.DoubleSide, depthWrite: false }));
     halo.position.z = 0.04; lamp.add(halo);
     lamps.push({ lamp, halo });
   }
@@ -124,10 +124,10 @@ export function buildRowlex(scale = 1) {
     const sh = grp(limbs, s * 0.48, -0.05, 0.05);
     sh.rotation.z = s * 0.55;
     sh.rotation.x = 0.25;
-    const upper = limbSeg(sh, rust, 0.42, 0.045, 0.035);
+    const upper = limbSeg(sh, bronze, 0.42, 0.045, 0.035);
     const el = grp(upper, 0, -0.42, 0);
     el.rotation.x = -0.35;
-    const lower = limbSeg(el, rust, 0.38, 0.032, 0.026);
+    const lower = limbSeg(el, bronze, 0.38, 0.032, 0.026);
     const wrist = grp(lower, 0, -0.38, 0);
     wrist.rotation.x = 0.2;
     const hand = clawHand(wrist, iron, 1.15);
@@ -140,10 +140,10 @@ export function buildRowlex(scale = 1) {
     const hip = grp(limbs, s * 0.28, -0.42, 0.0);
     hip.rotation.z = s * 0.15;
     hip.rotation.x = 0.15;
-    const thigh = limbSeg(hip, rust, 0.42, 0.07, 0.055);
+    const thigh = limbSeg(hip, bronze, 0.42, 0.07, 0.055);
     const knee = grp(thigh, 0, -0.42, 0);
     knee.rotation.x = 0.55;
-    const shin = limbSeg(knee, rust, 0.46, 0.05, 0.04);
+    const shin = limbSeg(knee, bronze, 0.46, 0.05, 0.04);
     const ankle = grp(shin, 0, -0.46, 0);
     ankle.rotation.x = -0.55;
     const foot = birdFoot(ankle, iron, 1.2);
@@ -168,9 +168,9 @@ export function buildRowlex(scale = 1) {
 export function poseRowlex(P, opt = {}) {
   const t = opt.t || 0, sp = opt.sp || 0, firing = !!opt.firing;
   const pulse = 0.85 + Math.sin(t * 3.4) * 0.15;
-  if (P.eyeLight) P.eyeLight.intensity = (firing ? 0.55 : 0.10) + pulse * 0.06;
-  if (P.eyeHalo) P.eyeHalo.material.opacity = (firing ? 0.55 : 0.16) + pulse * 0.07;
-  for (const L of P.lamps) L.halo.material.opacity = 0.2 + Math.sin(t * 2.6 + 1) * 0.06;
+  if (P.eyeLight) P.eyeLight.intensity = (firing ? 3.2 : 1.8) + pulse * 0.4;
+  if (P.eyeHalo) P.eyeHalo.material.opacity = (firing ? 0.95 : 0.62) + pulse * 0.12;
+  for (const L of P.lamps) L.halo.material.opacity = 0.55 + Math.sin(t * 2.6 + 1) * 0.15;
 
   const amt = Math.min(1, sp / 7);
   const phase = opt.phase || t * (3 + amt * 5);
@@ -206,18 +206,21 @@ export function poseRowlex(P, opt = {}) {
 // ---------------------------------------------------------------- EVIL (boss) — chunky Quake-era armor, distinct head group for 111 dmg headshots
 export function buildEvil(scale = 1) {
   const plateMap = Tex.rustPlate();
-  const orange = std(0xd26018, { roughness: 0.48, metalness: 0.55, map: plateMap, emissive: 0x3a1204, emissiveIntensity: 0.25 });
-  const orangeHi = std(0xe87820, { roughness: 0.42, metalness: 0.6, map: plateMap, emissive: 0x4a1604, emissiveIntensity: 0.18 });
-  const copper = std(0x8a5a40, { roughness: 0.5, metalness: 0.75 });
-  const steel = std(0x7a7068, { roughness: 0.4, metalness: 0.85 });
+  const orange = std(0xff9a28, { roughness: 0.42, metalness: 0.5, map: plateMap, emissive: 0x8a3a00, emissiveIntensity: 0.32 });
+  const orangeHi = std(0xffb034, { roughness: 0.36, metalness: 0.52, map: plateMap, emissive: 0x9a4800, emissiveIntensity: 0.28 });
+  const copper = std(0xa07048, { roughness: 0.48, metalness: 0.75 });
+  const steel = std(0x8a8480, { roughness: 0.35, metalness: 0.88 });
   const dark = std(0x2a2420, { roughness: 0.55, metalness: 0.7 });
-  const skin = std(0xd8c8b0, { roughness: 0.7, metalness: 0.05 });
-  const redFoot = std(0xc01010, { roughness: 0.45, metalness: 0.35, emissive: 0x5a0000, emissiveIntensity: 0.45 });
-  const emblem = std(0x7a1408, { roughness: 0.5, metalness: 0.4, emissive: 0x4a0800, emissiveIntensity: 0.5 });
-  const eyeBlue = new THREE.MeshBasicMaterial({ color: 0x2266ff, toneMapped: false });
-  const eyeGlow = additive(0x4488ff, 0.7, { map: Tex.dot(), side: THREE.DoubleSide, depthWrite: false });
+  const skin = std(0xeee0cc, { roughness: 0.62, metalness: 0.04, emissive: 0x2a2418, emissiveIntensity: 0.12 });
+  const redFoot = std(0xc81812, { roughness: 0.45, metalness: 0.35, emissive: 0x5a0000, emissiveIntensity: 0.4 });
+  const emblem = std(0x8a1c08, { roughness: 0.5, metalness: 0.4, emissive: 0x4a0c00, emissiveIntensity: 0.35 });
+  const eyeBlue = new THREE.MeshBasicMaterial({ color: 0x66bbff, toneMapped: false });
+  const eyeGlow = additive(0x88ccff, 1.0, { map: Tex.dot(), side: THREE.DoubleSide, depthWrite: false });
+  const socket = std(0x1a1410, { roughness: 0.8, metalness: 0.1 });
 
   const root = new THREE.Group();
+  const warm = new THREE.PointLight(0xffc070, 2.4, 14, 1.4);
+  warm.position.set(1.2, 3.2, 3.5); root.add(warm);
   // hip / pelvis at ~1.85
   const hips = grp(root, 0, 1.85, 0);
 
@@ -285,27 +288,28 @@ export function buildEvil(scale = 1) {
   // HEAD — distinct group, small hitbox lives here
   const head = grp(chest, 0, 0.72, 0.08);
   // pale skull
-  S(head, skin, 0, 0.08, 0.02, 0.28, 1.1, 1.05);
-  // cranium slightly larger
-  S(head, skin, 0, 0.14, -0.02, 0.26, 0.9, 0.95);
+  S(head, skin, 0, 0.08, 0.02, 0.30, 1.12, 1.08);
+  S(head, skin, 0, 0.16, -0.02, 0.27, 0.9, 0.95);
   // metal mouth mask / grille
-  B(head, steel, 0, -0.08, 0.18, 0.28, 0.16, 0.12);
-  for (let i = 0; i < 3; i++) B(head, dark, (i - 1) * 0.07, -0.08, 0.25, 0.03, 0.12, 0.02);
-  // brow
-  B(head, skin, 0, 0.16, 0.22, 0.3, 0.06, 0.08);
-  // blue eyes
+  B(head, steel, 0, -0.1, 0.20, 0.30, 0.18, 0.14);
+  for (let i = 0; i < 4; i++) B(head, dark, (i - 1.5) * 0.06, -0.1, 0.28, 0.028, 0.14, 0.02);
+  B(head, skin, 0, 0.18, 0.24, 0.32, 0.07, 0.08);
   const eyes = [];
   for (const s of [-1, 1]) {
-    S(head, eyeBlue, s * 0.09, 0.08, 0.24, 0.045);
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.12), eyeGlow.clone());
-    halo.position.set(s * 0.09, 0.08, 0.28); head.add(halo);
+    S(head, socket, s * 0.11, 0.10, 0.22, 0.085);
+    S(head, eyeBlue, s * 0.11, 0.10, 0.28, 0.072);
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(0.30, 0.22), eyeGlow.clone());
+    halo.position.set(s * 0.11, 0.10, 0.34); head.add(halo);
     eyes.push(halo);
   }
+  const eyeLite = new THREE.PointLight(0x66bbff, 1.4, 4, 2);
+  eyeLite.position.set(0, 0.1, 0.4); head.add(eyeLite);
   // side spikes on helmet-less skull
   K(head, steel, 0.26, 0.18, -0.02, 0.05, 0.22, 0, 0, -1.1, G.cone4);
   K(head, steel, -0.26, 0.18, -0.02, 0.05, 0.22, 0, 0, 1.1, G.cone4);
   // neck
   C(head, steel, 0, -0.22, 0, 0.12, 0.18);
+  head.scale.setScalar(1.35);
 
   const shadow = new THREE.Mesh(
     new THREE.PlaneGeometry(2.6, 2.6),
@@ -317,7 +321,7 @@ export function buildEvil(scale = 1) {
   return {
     root, hips, chest, head, arms, legs, eyes, shadow,
     // local-space hit data (unscaled); callers multiply by scale
-    headRadius: 0.42,
+    headRadius: 0.57,
     bodyRadius: 0.95,
     bodyHeight: 2.5,
     standHeight: 0,
@@ -339,7 +343,7 @@ export function poseEvil(P, opt = {}) {
   }
   P.head.rotation.y = Math.sin(t * 0.8) * 0.15;
   P.chest.rotation.y = Math.sin(t * 0.5) * 0.04;
-  for (const e of P.eyes) e.material.opacity = 0.5 + Math.sin(t * 6) * 0.25;
+  for (const e of P.eyes) e.material.opacity = 0.85 + Math.sin(t * 6) * 0.15;
 }
 
 // ---------------------------------------------------------------- BRAIN enemies
@@ -347,11 +351,11 @@ let _brainMat = null, _tendrilMat = null, _wrinkle = null;
 function brainMats() {
   if (_brainMat) return { brain: _brainMat, tendril: _tendrilMat, wrinkle: _wrinkle };
   _wrinkle = Tex.brain();
-  _brainMat = std(0x8a28a0, {
-    roughness: 0.55, metalness: 0.15, map: _wrinkle,
-    emissive: 0x3a0860, emissiveIntensity: 0.45,
+  _brainMat = std(0xa030b8, {
+    roughness: 0.48, metalness: 0.12, map: _wrinkle,
+    emissive: 0x5a1080, emissiveIntensity: 0.7,
   });
-  _tendrilMat = std(0x6a1a80, { roughness: 0.4, metalness: 0.1, emissive: 0x2a0440, emissiveIntensity: 0.3, transparent: true, opacity: 0.92 });
+  _tendrilMat = std(0x7a22a0, { roughness: 0.38, metalness: 0.1, emissive: 0x3a0860, emissiveIntensity: 0.45, transparent: true, opacity: 0.95 });
   return { brain: _brainMat, tendril: _tendrilMat, wrinkle: _wrinkle };
 }
 
@@ -371,24 +375,24 @@ export function buildBrain(scale = 1) {
   const eyeP = new THREE.MeshBasicMaterial({ color: 0xff44ee, toneMapped: false });
   const eyes = [];
   for (const s of [-1, 1]) {
-    const eg = grp(body, s * 0.18, 0.06, 0.42);
-    S(eg, eyeP, 0, 0, 0, 0.11);
-    S(eg, eyeW, 0, 0, 0.04, 0.055);
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.36), additive(0xff66ff, 0.55, { map: Tex.dot(), side: THREE.DoubleSide, depthWrite: false }));
+    const eg = grp(body, s * 0.2, 0.08, 0.46);
+    S(eg, eyeP, 0, 0, 0, 0.14);
+    S(eg, eyeW, 0, 0, 0.05, 0.07);
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), additive(0xff66ff, 0.8, { map: Tex.dot(), side: THREE.DoubleSide, depthWrite: false }));
     halo.position.z = 0.08; eg.add(halo);
     eyes.push({ eg, halo });
   }
 
   const tendrils = [];
   const tpts = [
-    [-0.2, -0.4, 0.05, 0.42], [0.18, -0.45, -0.02, 0.5],
-    [0.02, -0.48, 0.12, 0.38], [-0.08, -0.42, -0.16, 0.46],
-    [0.28, -0.38, 0.1, 0.34], [-0.3, -0.36, -0.08, 0.36],
+    [-0.22, -0.42, 0.05, 0.62], [0.2, -0.48, -0.02, 0.72],
+    [0.02, -0.5, 0.12, 0.58], [-0.1, -0.44, -0.18, 0.68],
+    [0.3, -0.4, 0.1, 0.52], [-0.32, -0.38, -0.08, 0.56],
   ];
   for (const [x, y, z, len] of tpts) {
     const t = grp(body, x, y, z);
-    C(t, tendril, 0, -len * 0.35, 0, 0.045, len * 0.7, 0, 0, 0, 0.02);
-    S(t, tendril, 0, -len * 0.72, 0, 0.04, 1.4, 1.4);
+    C(t, tendril, 0, -len * 0.35, 0, 0.06, len * 0.7, 0, 0, 0, 0.022);
+    S(t, tendril, 0, -len * 0.75, 0, 0.055, 1.5, 1.5);
     tendrils.push({ t, len, ox: x, oy: y, oz: z });
   }
 
