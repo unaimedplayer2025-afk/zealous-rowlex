@@ -1,7 +1,8 @@
-// WebAudio SFX + music. Tracks (OGG + MP3 fallback, picked with canPlayType):
+// WebAudio SFX + optional music. Tracks (OGG + MP3 fallback, picked with canPlayType):
 //   audio/title-theme.{ogg,mp3}  — from THE RIFT & THE REACH title theme (John's song)
-//   audio/gameplay.{ogg,mp3}     — from WADGET: Chain of Ages gameplay track (John's song)
-export const AUDIO_V = 'zr-v1';
+// Gameplay bed is unset. To hook up a new fight track later, drop
+//   audio/gameplay.{ogg,mp3}  and set MUSIC.game to 'audio/gameplay'.
+export const AUDIO_V = 'zr-v2';
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
 function pickSrc(base) {
@@ -24,19 +25,25 @@ export const Snd = {
     }
     if (this.ac && this.ac.state === 'suspended') this.ac.resume().catch(() => {});
     this.unlocked = true;
-    this.make('title', 'audio/title-theme');
-    this.make('game', 'audio/gameplay');
+    // Only load beds that have a path. Missing paths stay null and are skipped.
+    const MUSIC = {
+      title: 'audio/title-theme',
+      game: null, // e.g. 'audio/gameplay'
+    };
+    this.make('title', MUSIC.title);
+    this.make('game', MUSIC.game);
     this.playCurrent();
   },
   make(which, base) {
-    if (this[which]) return;
+    if (this[which] || !base) return;
     const a = new Audio(); a.loop = true; a.preload = 'auto'; a.src = pickSrc(base); a.volume = 0;
+    a.addEventListener('error', () => { a._dead = true; });
     this[which] = a;
   },
   playCurrent() {
     if (this.muted || !this.unlocked) return;
     const a = this.bed === 'game' ? this.game : this.title;
-    if (a && a.paused) { const p = a.play(); if (p && p.catch) p.catch(() => {}); }
+    if (a && !a._dead && a.paused) { const p = a.play(); if (p && p.catch) p.catch(() => {}); }
   },
   setBed(name) { this.bed = name === 'game' ? 'game' : 'title'; this.playCurrent(); },
   setMuted(m) {
@@ -52,12 +59,12 @@ export const Snd = {
     const wantGame = this.bed === 'game' && this.unlocked && !this.muted;
     this.titleVol = wantTitle ? Math.min(0.65, this.titleVol + dt * 0.9) : Math.max(0, this.titleVol - dt * 0.7);
     this.gameVol = wantGame ? Math.min(0.62, this.gameVol + dt * 0.9) : Math.max(0, this.gameVol - dt * 0.7);
-    if (this.title) {
+    if (this.title && !this.title._dead) {
       if (wantTitle && this.title.paused) this.playCurrent();
       try { this.title.volume = clamp(this.titleVol * (0.55 + 0.45 * this.duck), 0, 1); } catch (e) {}
       if (!wantTitle && this.titleVol <= 0 && !this.title.paused) this.title.pause();
     }
-    if (this.game) {
+    if (this.game && !this.game._dead) {
       if (wantGame && this.game.paused) this.playCurrent();
       try { this.game.volume = clamp(this.gameVol * (0.55 + 0.45 * this.duck), 0, 1); } catch (e) {}
       if (!wantGame && this.gameVol <= 0 && !this.game.paused) this.game.pause();

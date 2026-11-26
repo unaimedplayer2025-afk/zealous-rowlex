@@ -20,10 +20,10 @@ The game speeds up as your score rises. Beat your Best Score, or take Evil down.
 
 ## Music
 
-John's tracks, reused from earlier games (OGG + MP3 fallback, picked with `canPlayType`):
+OGG plus an MP3 fallback, picked with `canPlayType`. Audio unlocks on the first tap or key, and **M** mutes.
 
 - `audio/title-theme.{ogg,mp3}` — title / Good Game bed, from **THE RIFT & THE REACH** title theme
-- `audio/gameplay.{ogg,mp3}` — during the fight, from **WADGET: Chain of Ages** gameplay
+- There is no gameplay music bed in this build (sound effects still play). To add one later, drop `audio/gameplay.{ogg,mp3}` in the `audio/` folder and set `MUSIC.game` in `src/audio.js`.
 
 ## Flags
 
